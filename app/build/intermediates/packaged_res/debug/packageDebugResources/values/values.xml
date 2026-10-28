@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="http://schemas.android.com/tools">
+    <string name="app_name">ShareChat</string>
+    <string name="camera_permission_required">Camera permission is required to capture photos for chat messages.</string>
+    <string name="clear_photo">Remove Photo</string>
+    <string name="com.google.firebase.crashlytics.mapping_file_id" ns1:ignore="UnusedResources,TypographyDashes" translatable="false">00000000000000000000000000000000</string>
+    <string name="gcm_defaultSenderId" translatable="false">123456789012</string>
+    <string name="google_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
+    <string name="google_app_id" translatable="false">1:123456789012:android:abcdef0123456789</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
+    <string name="google_storage_bucket" translatable="false">share-chat-demo.appspot.com</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="project_id" translatable="false">share-chat-demo</string>
+    <string name="send_message_hint">Type a message...</string>
+    <string name="share_via_sharesheet">Share via Sharesheet</string>
+    <string name="switch_user">Switch User</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="trigger_test_crash">Trigger Test Crash</string>
+    <style name="Theme.ShareChatApp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

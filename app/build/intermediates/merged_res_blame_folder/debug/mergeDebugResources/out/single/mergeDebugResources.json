@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.example.sharechat.app-debug-6:/xml_file_paths.xml.flat",
+        "source": "com.example.sharechat.app-main-8:/xml/file_paths.xml"
+    }
+]

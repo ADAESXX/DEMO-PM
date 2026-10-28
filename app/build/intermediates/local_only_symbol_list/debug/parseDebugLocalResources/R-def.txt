@@ -1,0 +1,20 @@
+R_DEF: Internal format may change without notice
+local
+string app_name
+string camera_permission_required
+string clear_photo
+string com.google.firebase.crashlytics.mapping_file_id
+string gcm_defaultSenderId
+string google_api_key
+string google_app_id
+string google_crash_reporting_api_key
+string google_storage_bucket
+string grant_permission
+string project_id
+string send_message_hint
+string share_via_sharesheet
+string switch_user
+string take_photo
+string trigger_test_crash
+style Theme.ShareChatApp
+xml file_paths
