@@ -16,6 +16,7 @@ data class ChatUiState(
     val pendingCameraCaptureUri: Uri? = null,
     val isSending: Boolean = false,
     val hasCameraPermission: Boolean = false,
+    val showPermissionRationaleDialog: Boolean = false,
     val infoMessage: String? = null,
     val errorMessage: String? = null
 )

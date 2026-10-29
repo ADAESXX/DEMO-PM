@@ -1,6 +1,7 @@
 package com.example.sharechat
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import com.example.sharechat.util.CrashlyticsHelper
 import com.google.firebase.FirebaseApp
@@ -13,6 +14,8 @@ class ShareChatApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
+
         try {
             FirebaseApp.initializeApp(this)
             Log.d(TAG, "Firebase initialized successfully.")
@@ -38,5 +41,17 @@ class ShareChatApplication : Application() {
 
     companion object {
         private const val TAG = "ShareChatApp"
+
+        @Volatile
+        var instance: ShareChatApplication? = null
+            private set
+
+        val appContext: Context
+            get() = instance?.applicationContext
+                ?: try {
+                    FirebaseApp.getInstance().applicationContext
+                } catch (_: Exception) {
+                    instance?.baseContext ?: throw IllegalStateException("Application context is not yet available.")
+                }
     }
 }

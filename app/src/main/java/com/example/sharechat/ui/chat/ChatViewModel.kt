@@ -4,10 +4,13 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sharechat.ShareChatApplication
 import com.example.sharechat.data.model.ChatMessage
 import com.example.sharechat.data.model.ChatUser
+import com.example.sharechat.data.repository.AndroidPermissionRepository
 import com.example.sharechat.data.repository.ChatRepository
 import com.example.sharechat.data.repository.FirebaseChatRepository
+import com.example.sharechat.data.repository.PermissionRepository
 import com.example.sharechat.util.CrashlyticsHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,21 +24,23 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 /**
- * ViewModel managing chat business logic, coroutine dispatching, and unidirectional state.
- * Employs [SavedStateHandle] to guarantee draft message persistence across configuration changes.
+ * ViewModel managing chat business logic, coroutine dispatching, permission coordination,
+ * and unidirectional state.
  */
 class ChatViewModel @JvmOverloads constructor(
     private val savedStateHandle: SavedStateHandle = SavedStateHandle(),
-    private val repository: ChatRepository = FirebaseChatRepository()
+    private val chatRepository: ChatRepository = FirebaseChatRepository(),
+    private val permissionRepository: PermissionRepository = AndroidPermissionRepository(ShareChatApplication.appContext)
 ) : ViewModel() {
 
     private val initialDraft: String = savedStateHandle.get<String>(KEY_INPUT_DRAFT) ?: ""
 
     private val _uiState = MutableStateFlow(
         ChatUiState(
-            currentUser = repository.getCurrentUser(),
-            availableUsers = repository.getAvailableUsers(),
-            inputMessage = initialDraft
+            currentUser = chatRepository.getCurrentUser(),
+            availableUsers = chatRepository.getAvailableUsers(),
+            inputMessage = initialDraft,
+            hasCameraPermission = permissionRepository.checkCameraPermission()
         )
     )
     val uiState: StateFlow<ChatUiState> = _uiState.asStateFlow()
@@ -44,16 +49,27 @@ class ChatViewModel @JvmOverloads constructor(
     private val _shareSheetActionFlow = MutableSharedFlow<ShareAction>()
     val shareSheetActionFlow: SharedFlow<ShareAction> = _shareSheetActionFlow.asSharedFlow()
 
-    init {
-        CrashlyticsHelper.setUserIdentifier(repository.getCurrentUser().id)
-        CrashlyticsHelper.setCustomMetric("initial_user", repository.getCurrentUser().displayName)
+    // Side effect channel for hardware camera launch requests
+    private val _cameraActionFlow = MutableSharedFlow<CameraAction>()
+    val cameraActionFlow: SharedFlow<CameraAction> = _cameraActionFlow.asSharedFlow()
 
-        // Observe real-time messages from repository
+    init {
+        CrashlyticsHelper.setUserIdentifier(chatRepository.getCurrentUser().id)
+        CrashlyticsHelper.setCustomMetric("initial_user", chatRepository.getCurrentUser().displayName)
+
+        // Observe real-time messages from chat repository
         viewModelScope.launch {
-            repository.observeMessages().collect { messageList ->
+            chatRepository.observeMessages().collect { messageList ->
                 _uiState.update { currentState ->
                     currentState.copy(messages = messageList)
                 }
+            }
+        }
+
+        // Synchronize permission status from permission repository
+        viewModelScope.launch {
+            permissionRepository.hasCameraPermission.collect { isGranted ->
+                _uiState.update { it.copy(hasCameraPermission = isGranted) }
             }
         }
     }
@@ -70,6 +86,10 @@ class ChatViewModel @JvmOverloads constructor(
 
             is ChatUiEvent.OnSendMessage -> {
                 sendMessageInternal()
+            }
+
+            is ChatUiEvent.OnRequestCameraAction -> {
+                handleCameraRequest()
             }
 
             is ChatUiEvent.OnPhotoCaptured -> {
@@ -98,8 +118,23 @@ class ChatViewModel @JvmOverloads constructor(
             }
 
             is ChatUiEvent.OnCameraPermissionResult -> {
-                _uiState.update { it.copy(hasCameraPermission = event.isGranted) }
-                CrashlyticsHelper.setCustomMetric("camera_permission_granted", event.isGranted.toString())
+                permissionRepository.updateCameraPermission(event.isGranted)
+                if (event.isGranted) {
+                    _uiState.update { it.copy(showPermissionRationaleDialog = false) }
+                    // Permission just granted by user -> proceed to capture
+                    executeCaptureWithNewUri()
+                } else {
+                    _uiState.update { it.copy(showPermissionRationaleDialog = true) }
+                }
+            }
+
+            is ChatUiEvent.OnDismissPermissionDialog -> {
+                _uiState.update { it.copy(showPermissionRationaleDialog = false) }
+            }
+
+            is ChatUiEvent.OnOpenAppSettings -> {
+                permissionRepository.openAppSettings()
+                _uiState.update { it.copy(showPermissionRationaleDialog = false) }
             }
 
             is ChatUiEvent.OnSetPendingCaptureUri -> {
@@ -109,6 +144,25 @@ class ChatViewModel @JvmOverloads constructor(
             is ChatUiEvent.OnDismissInfoMessage -> {
                 _uiState.update { it.copy(infoMessage = null, errorMessage = null) }
             }
+        }
+    }
+
+    private fun handleCameraRequest() {
+        val isGranted = permissionRepository.checkCameraPermission()
+        if (isGranted) {
+            executeCaptureWithNewUri()
+        } else {
+            viewModelScope.launch {
+                _cameraActionFlow.emit(CameraAction.RequestPermission)
+            }
+        }
+    }
+
+    private fun executeCaptureWithNewUri() {
+        val photoUri = permissionRepository.createTempCameraUri()
+        _uiState.update { it.copy(pendingCameraCaptureUri = photoUri) }
+        viewModelScope.launch {
+            _cameraActionFlow.emit(CameraAction.LaunchCamera(photoUri))
         }
     }
 
@@ -133,7 +187,7 @@ class ChatViewModel @JvmOverloads constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isSending = true) }
-            val sendResult = repository.sendMessage(message)
+            val sendResult = chatRepository.sendMessage(message)
             _uiState.update { it.copy(isSending = false) }
 
             if (sendResult.isSuccess) {
@@ -151,7 +205,7 @@ class ChatViewModel @JvmOverloads constructor(
     }
 
     private fun switchUserInternal(user: ChatUser) {
-        repository.setCurrentUser(user)
+        chatRepository.setCurrentUser(user)
         _uiState.update {
             it.copy(
                 currentUser = user,
@@ -198,13 +252,21 @@ class ChatViewModel @JvmOverloads constructor(
     }
 
     /**
-     * Model representing a target request for launching the Android Sharesheet.
+     * Side-effect action for launching external application sharesheet.
      */
     data class ShareAction(
         val text: String,
         val imageUri: Uri? = null,
         val title: String = "Share Content"
     )
+
+    /**
+     * Side-effect action for camera permission negotiation or hardware capture.
+     */
+    sealed interface CameraAction {
+        data object RequestPermission : CameraAction
+        data class LaunchCamera(val uri: Uri) : CameraAction
+    }
 
     companion object {
         private const val KEY_INPUT_DRAFT = "key_input_message_draft"

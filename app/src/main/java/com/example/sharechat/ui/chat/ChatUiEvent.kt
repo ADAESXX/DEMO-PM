@@ -13,6 +13,8 @@ sealed interface ChatUiEvent {
 
     data object OnSendMessage : ChatUiEvent
 
+    data object OnRequestCameraAction : ChatUiEvent
+
     data class OnPhotoCaptured(val uri: Uri) : ChatUiEvent
 
     data object OnRemovePhoto : ChatUiEvent
@@ -26,6 +28,10 @@ sealed interface ChatUiEvent {
     data object OnTriggerTestCrash : ChatUiEvent
 
     data class OnCameraPermissionResult(val isGranted: Boolean) : ChatUiEvent
+
+    data object OnDismissPermissionDialog : ChatUiEvent
+
+    data object OnOpenAppSettings : ChatUiEvent
 
     data class OnSetPendingCaptureUri(val uri: Uri?) : ChatUiEvent
 

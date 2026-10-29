@@ -1,7 +1,7 @@
 package com.example.sharechat.ui.chat
 
+import android.Manifest
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -44,8 +44,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,19 +52,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.sharechat.data.model.ChatUser
 import com.example.sharechat.ui.components.AdaptiveChatScaffold
 import com.example.sharechat.ui.components.ChatBubble
 import com.example.sharechat.ui.components.MessageInputBar
 import com.example.sharechat.ui.theme.StatusOnlineGreen
-import com.example.sharechat.util.CameraUtils
 import com.example.sharechat.util.ShareSheetHelper
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 /**
- * Root Composable orchestrating chat messaging, camera capture runtime permissions,
- * Android Sharesheet interaction, and adaptive responsiveness.
+ * Root Composable orchestrating chat messaging, Android Sharesheet interaction,
+ * and adaptive responsiveness.
+ * All permission and storage business logic is abstracted into the Repository layer.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,21 +71,18 @@ fun ChatScreen(
     viewModel: ChatViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberLazyListState()
 
-    var pendingPhotoUri by remember { mutableStateOf<Uri?>(null) }
     var isUserMenuExpanded by remember { mutableStateOf(false) }
-    var showPermissionDeniedDialog by rememberSaveable { mutableStateOf(false) }
 
     // Camera Picture Capture Contract
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) {
-            pendingPhotoUri?.let { uri ->
+            uiState.pendingCameraCaptureUri?.let { uri ->
                 viewModel.onEvent(ChatUiEvent.OnPhotoCaptured(uri))
             }
         }
@@ -100,24 +93,20 @@ fun ChatScreen(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         viewModel.onEvent(ChatUiEvent.OnCameraPermissionResult(isGranted))
-        if (isGranted) {
-            val photoUri = CameraUtils.createTempImageUri(context)
-            pendingPhotoUri = photoUri
-            viewModel.onEvent(ChatUiEvent.OnSetPendingCaptureUri(photoUri))
-            takePictureLauncher.launch(photoUri)
-        } else {
-            showPermissionDeniedDialog = true
-        }
     }
 
-    val launchCameraCapture: () -> Unit = {
-        if (CameraUtils.hasCameraPermission(context)) {
-            val photoUri = CameraUtils.createTempImageUri(context)
-            pendingPhotoUri = photoUri
-            viewModel.onEvent(ChatUiEvent.OnSetPendingCaptureUri(photoUri))
-            takePictureLauncher.launch(photoUri)
-        } else {
-            cameraPermissionLauncher.launch(CameraUtils.CAMERA_PERMISSION)
+    // Observe permission repository side effects (hardware requests dispatched from ViewModel)
+    LaunchedEffect(Unit) {
+        viewModel.cameraActionFlow.collectLatest { action ->
+            when (action) {
+                is ChatViewModel.CameraAction.RequestPermission -> {
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                }
+
+                is ChatViewModel.CameraAction.LaunchCamera -> {
+                    takePictureLauncher.launch(action.uri)
+                }
+            }
         }
     }
 
@@ -149,9 +138,10 @@ fun ChatScreen(
         }
     }
 
-    if (showPermissionDeniedDialog) {
+    // Declarative Rationale Dialog governed by Centralized State and PermissionRepository
+    if (uiState.showPermissionRationaleDialog) {
         AlertDialog(
-            onDismissRequest = { showPermissionDeniedDialog = false },
+            onDismissRequest = { viewModel.onEvent(ChatUiEvent.OnDismissPermissionDialog) },
             title = {
                 Text(text = "Camera Permission Required")
             },
@@ -164,15 +154,14 @@ fun ChatScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        showPermissionDeniedDialog = false
-                        CameraUtils.openAppSettings(context)
+                        viewModel.onEvent(ChatUiEvent.OnOpenAppSettings)
                     }
                 ) {
                     Text(text = "Open Settings")
                 }
             },
             dismissButton = {
-                OutlinedButton(onClick = { showPermissionDeniedDialog = false }) {
+                OutlinedButton(onClick = { viewModel.onEvent(ChatUiEvent.OnDismissPermissionDialog) }) {
                     Text(text = "Cancel")
                 }
             }
@@ -190,7 +179,9 @@ fun ChatScreen(
                 messageCount = uiState.messages.size
             )
         },
-        onCameraTriggerClicked = launchCameraCapture,
+        onCameraTriggerClicked = {
+            viewModel.onEvent(ChatUiEvent.OnRequestCameraAction)
+        },
         chatContent = {
             Scaffold(
                 snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -310,7 +301,9 @@ fun ChatScreen(
                         onSendClicked = {
                             viewModel.onEvent(ChatUiEvent.OnSendMessage)
                         },
-                        onCameraClicked = launchCameraCapture,
+                        onCameraClicked = {
+                            viewModel.onEvent(ChatUiEvent.OnRequestCameraAction)
+                        },
                         onShareDraftClicked = {
                             viewModel.onEvent(ChatUiEvent.OnShareCurrentDraftViaSheet)
                         },
