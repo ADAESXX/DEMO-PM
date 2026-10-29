@@ -10,16 +10,10 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.example.sharechat" />
-                  <option name="mobileSdkAppId" value="1:123456789012:android:abcdef0123456789" />
-                  <option name="projectId" value="share-chat-demo" />
-                  <option name="projectNumber" value="123456789012" />
+                  <option name="mobileSdkAppId" value="1:295471786082:android:2cd8cee601b2e917f4093b" />
+                  <option name="projectId" value="demopm-30dec" />
+                  <option name="projectNumber" value="295471786082" />
                 </ConnectionSetting>
-              </option>
-              <option name="failureTypes">
-                <list>
-                  <option value="ANR" />
-                  <option value="NON_FATAL" />
-                </list>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
               <option name="timeIntervalDays" value="THIRTY_DAYS" />

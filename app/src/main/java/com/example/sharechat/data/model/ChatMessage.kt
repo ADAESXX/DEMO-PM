@@ -3,27 +3,27 @@ package com.example.sharechat.data.model
 import com.google.firebase.firestore.PropertyName
 
 /**
- * Immutable entity representing a single message within a conversation.
- * Compatible with Firebase Firestore serialization.
+ * Entity representing a single message within a conversation.
+ * Optimized for seamless Firebase Firestore serialization and deserialization.
  */
 data class ChatMessage(
-    @get:PropertyName("id")
-    val id: String = "",
+    @get:PropertyName("id") @set:PropertyName("id")
+    var id: String = "",
 
-    @get:PropertyName("senderId")
-    val senderId: String = "",
+    @get:PropertyName("senderId") @set:PropertyName("senderId")
+    var senderId: String = "",
 
-    @get:PropertyName("senderName")
-    val senderName: String = "",
+    @get:PropertyName("senderName") @set:PropertyName("senderName")
+    var senderName: String = "",
 
-    @get:PropertyName("messageText")
-    val messageText: String = "",
+    @get:PropertyName("messageText") @set:PropertyName("messageText")
+    var messageText: String = "",
 
-    @get:PropertyName("imageUriString")
-    val imageUriString: String? = null,
+    @get:PropertyName("imageUriString") @set:PropertyName("imageUriString")
+    var imageUriString: String? = null,
 
-    @get:PropertyName("timestamp")
-    val timestamp: Long = System.currentTimeMillis()
+    @get:PropertyName("timestamp") @set:PropertyName("timestamp")
+    var timestamp: Long = System.currentTimeMillis()
 ) {
     /**
      * Determines whether this message was sent by the provided user ID.

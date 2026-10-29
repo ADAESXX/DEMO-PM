@@ -12,6 +12,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
@@ -62,10 +63,12 @@ class FirebaseChatRepository : ChatRepository {
         val db = firestore
         if (db == null) {
             // If Firebase is unavailable, emit in-memory demo data
-            val subscription = localFallbackMessages.collect { messages ->
-                trySend(messages)
+            val job = launch {
+                localFallbackMessages.collect { messages ->
+                    trySend(messages)
+                }
             }
-            awaitClose { }
+            awaitClose { job.cancel() }
             return@callbackFlow
         }
 
