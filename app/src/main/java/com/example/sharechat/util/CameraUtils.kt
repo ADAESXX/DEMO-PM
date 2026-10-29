@@ -2,8 +2,10 @@ package com.example.sharechat.util
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
@@ -24,6 +26,18 @@ object CameraUtils {
     fun hasCameraPermission(context: Context): Boolean {
         val permissionResult = ContextCompat.checkSelfPermission(context, CAMERA_PERMISSION)
         return permissionResult == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Opens the system App Details Settings page so the user can re-enable
+     * permissions that were permanently denied or marked with "Don't ask again".
+     */
+    fun openAppSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", context.packageName, null)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
     }
 
     /**
