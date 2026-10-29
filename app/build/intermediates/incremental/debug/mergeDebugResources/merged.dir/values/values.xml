@@ -208,11 +208,11 @@
     <string name="fallback_menu_item_copy_link">Copy link</string>
     <string name="fallback_menu_item_open_in_browser">Open in browser</string>
     <string name="fallback_menu_item_share_link">Share link</string>
-    <string name="gcm_defaultSenderId" translatable="false">123456789012</string>
-    <string name="google_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
-    <string name="google_app_id" translatable="false">1:123456789012:android:abcdef0123456789</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
-    <string name="google_storage_bucket" translatable="false">share-chat-demo.appspot.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">295471786082</string>
+    <string name="google_api_key" translatable="false">AIzaSyCPh3-c_zafMT2jiVAsZNDsAzegNOOSFtk</string>
+    <string name="google_app_id" translatable="false">1:295471786082:android:2cd8cee601b2e917f4093b</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCPh3-c_zafMT2jiVAsZNDsAzegNOOSFtk</string>
+    <string name="google_storage_bucket" translatable="false">demopm-30dec.firebasestorage.app</string>
     <string name="grant_permission">Grant Permission</string>
     <string name="in_progress">In progress</string>
     <string name="indeterminate">Partially checked</string>
@@ -279,7 +279,7 @@
     <string name="m3c_tooltip_pane_description">Tooltip</string>
     <string name="navigation_menu">"Navigation menu"</string>
     <string name="not_selected">Not selected</string>
-    <string name="project_id" translatable="false">share-chat-demo</string>
+    <string name="project_id" translatable="false">demopm-30dec</string>
     <string name="range_end">"Range end"</string>
     <string name="range_start">"Range start"</string>
     <string name="selected">Selected</string>

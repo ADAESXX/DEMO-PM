@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="gcm_defaultSenderId" translatable="false">123456789012</string>
-    <string name="google_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
-    <string name="google_app_id" translatable="false">1:123456789012:android:abcdef0123456789</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyDummyApiKeyForLocalDemo123456789</string>
-    <string name="google_storage_bucket" translatable="false">share-chat-demo.appspot.com</string>
-    <string name="project_id" translatable="false">share-chat-demo</string>
+    <string name="gcm_defaultSenderId" translatable="false">295471786082</string>
+    <string name="google_api_key" translatable="false">AIzaSyCPh3-c_zafMT2jiVAsZNDsAzegNOOSFtk</string>
+    <string name="google_app_id" translatable="false">1:295471786082:android:2cd8cee601b2e917f4093b</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCPh3-c_zafMT2jiVAsZNDsAzegNOOSFtk</string>
+    <string name="google_storage_bucket" translatable="false">demopm-30dec.firebasestorage.app</string>
+    <string name="project_id" translatable="false">demopm-30dec</string>
 </resources>

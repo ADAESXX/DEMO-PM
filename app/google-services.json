@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789012",
-    "project_id": "share-chat-demo",
-    "storage_bucket": "share-chat-demo.appspot.com"
+    "project_number": "295471786082",
+    "project_id": "demopm-30dec",
+    "storage_bucket": "demopm-30dec.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789012:android:abcdef0123456789",
+        "mobilesdk_app_id": "1:295471786082:android:2cd8cee601b2e917f4093b",
         "android_client_info": {
           "package_name": "com.example.sharechat"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyApiKeyForLocalDemo123456789"
+          "current_key": "AIzaSyCPh3-c_zafMT2jiVAsZNDsAzegNOOSFtk"
         }
       ],
       "services": {
